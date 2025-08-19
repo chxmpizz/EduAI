@@ -13,3 +13,105 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum Role {
+  Student
+  Teacher
+}
+
+enum Emotion {
+  Happy
+  Sad
+  Angry
+  Neutral
+  Excited
+}
+
+model Users {
+  id            String         @id @unique @default(uuid())
+  fName         String
+  lName         String
+  role          Role
+  profile_image String
+  email         String         @unique
+  hash_password String
+  b_day         DateTime
+  created_at    DateTime       @default(now())
+  updated_at    DateTime       @updatedAt
+  Conversation  Conversation[]
+  Essay         Essay[]
+  Emotional     Emotional[]
+  Course        Course[]
+  Score         Score[]
+  Lesson        Lesson[]
+}
+
+model Conversation {
+  id           Int       @id @default(autoincrement())
+  chat_time    DateTime
+  function_use String
+  user         Users     @relation(fields: [user_id], references: [id])
+  user_id      String
+  Message      Message[]
+}
+
+model Message {
+  id            Int          @id @default(autoincrement())
+  conversation  Conversation @relation(fields: [conver_id], references: [id])
+  conver_id     Int
+  sender        String
+  text          Json
+  retrieval_doc String[]
+}
+
+model Essay {
+  id       Int      @id @default(autoincrement())
+  users    Users    @relation(fields: [user_id], references: [id])
+  user_id  String
+  text     String[]
+  score    Int
+  feedBack String
+}
+
+model Emotional {
+  id            Int     @id @default(autoincrement())
+  users         Users   @relation(fields: [user_id], references: [id])
+  user_id       String
+  input_text    String
+  emotion       Emotion
+  response_text String
+}
+
+model Course {
+  id               Int      @id @default(autoincrement())
+  user             Users    @relation(fields: [teacher_id], references: [id])
+  teacher_id       String
+  course_name      String
+  description      String
+  rating_avg_score Float
+  subject_category String
+  created_at       DateTime @default(now())
+  Score            Score[]
+  Lesson           Lesson[]
+}
+
+model Score {
+  id        Int    @id @default(autoincrement())
+  course    Course @relation(fields: [course_id], references: [id])
+  course_id Int
+  user      Users  @relation(fields: [user_id], references: [id])
+  user_id   String
+  score     Int
+
+  @@unique([course_id, user_id]) // ✅ ห้าม user มี score ซ้ำใน course เดียวกัน
+}
+
+model Lesson {
+  id          Int    @id @default(autoincrement())
+  course      Course @relation(fields: [course_id], references: [id])
+  course_id   Int
+  user        Users  @relation(fields: [teacher_id], references: [id])
+  teacher_id  String
+  vdo_link    String
+  lesson_name String
+}
